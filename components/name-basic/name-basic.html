@@ -1,0 +1,24 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id='name-basic'>
+  <template>
+    <p>
+      [[first]] [[last]]
+    </p>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'name-basic',
+    properties: {
+      first: {
+        type: String,
+        value: '',
+      },
+      last: {
+        type: String,
+        value: '',
+      },
+    },
+  });
+</script>

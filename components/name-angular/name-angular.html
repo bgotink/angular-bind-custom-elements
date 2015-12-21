@@ -1,0 +1,38 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id='name-angular'>
+  <template>
+    <p>
+      [[first]] [[last]]
+    </p>
+    <button on-click="_toggleAngular">Toggle Angular</button>
+    <template is="dom-if" if="[[_showAngular]]">
+      <div>
+        <content></content>
+      </div>
+    </template>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'name-angular',
+    properties: {
+      first: {
+        type: String,
+        value: '',
+      },
+      last: {
+        type: String,
+        value: '',
+      },
+      _showAngular: {
+        type: Boolean,
+        value: false,
+      }
+    },
+
+    _toggleAngular() {
+      this._showAngular = !this._showAngular;
+    },
+  });
+</script>

@@ -1,0 +1,19 @@
+{
+  "name": "angular-polymer-tests",
+  "authors": [
+    "Bram Gotink <bram@gotink.me>"
+  ],
+  "description": "Testing the link between angular 1.x and polymer",
+  "keywords": [
+    "angular",
+    "polymer"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.4.8",
+    "polymer": "~1.2.3",
+    "webcomponentsjs": "~0.7.20",
+    "bootstrap": "~3.3.6"
+  }
+}

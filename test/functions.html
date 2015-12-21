@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html ng-app='app'>
+  <head>
+    <title>Bi-Directional Binding Demo</title>
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel='import' href='../components/name-basic/name-basic.html' />
+  </head>
+  <body>
+    <div class="container" ng-controller="MyController as my">
+      <div class="row">
+        <h1>Demo</h1>
+        <p>
+          <label for="my.first">First Name:</label>
+          <input type="text" ng-model="my.first">
+        </p>
+        <p>
+          <label for="my.last">Last Name:</label>
+          <input type="text" ng-model="my.last">
+        </p>
+      </div>
+      <div class="row angular">
+        <ng-name-basic first="getFirst()" last="getLast()"></name-basic>
+      </div>
+      <div class="row polymer">
+        <name-basic bind-polymer pl-first="getFirst()" pl-last="getLast()"></name-basic>
+      </div>
+    </div>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bindPolymer.js"></script>
+    <script>
+    angular
+    .module('app', ['bindPolymer'])
+    .directive('ngNameBasic', [function () {
+      return {
+        restrict: 'E',
+        scope: {
+          first: '=first',
+          last: '=last',
+        },
+        template: '<p>{{first}} {{last}}</p>',
+      };
+    }])
+    .controller('MyController', [ '$scope', function ($scope) {
+      $scope.getFirst = (function () {
+        return this.first;
+      }).bind(this);
+
+      $scope.getLast = (function () {
+        return this.last;
+      }).bind(this);
+    }]);
+    </script>
+  </body>
+</html>

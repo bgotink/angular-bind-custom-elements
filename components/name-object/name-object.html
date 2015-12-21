@@ -1,0 +1,25 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id='name-object'>
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <p>
+      [[name.first]] [[name.last]]
+    </p>
+  </template>
+  <script>
+    Polymer({
+      is: 'name-object',
+      properties: {
+        name: {
+          type: Object,
+          value: {},
+        },
+      },
+    });
+  </script>
+</dom-module>

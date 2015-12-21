@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html ng-app='app'>
+  <head>
+    <title>Bi-Directional Binding Demo</title>
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel='import' href='../components/name-scoped/name-scoped.html' />
+  </head>
+  <body>
+    <div class="container" ng-controller="MyController as my">
+      <div class="row">
+        <h1>Demo</h1>
+        <div>
+          <button class="btn" ng-click="my.doStuff()">Button</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-4 angular">
+          <ng-name-scoped name="my.obj"></ng-name-scoped>
+        </div>
+        <div class="col-xs-4 polymer-fixed">
+          <name-scoped bind-polymer pl-name="my.obj"></name-scoped>
+        </div>
+      </div>
+    </div>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bindPolymer.js"></script>
+    <script>
+    angular
+    .module('app', ['bindPolymer'])
+    .directive('ngNameScoped', [function () {
+      return {
+        restrict: 'E',
+        template: '<p>{{value.getFirst()}} {{value.getLast()}}</p>',
+        scope: true,
+        link: function (scope, el, attrs) {
+          scope.$watch(attrs.name, function (val) {
+            scope.value = val;
+          });
+        }
+      };
+    }])
+    .controller('MyController', [ '$scope', function ($scope) {
+      var first = 'FirstName';
+      var last = 'LastName';
+
+      function getFirst() {
+        return first;
+      }
+
+      function getLast() {
+        return last;
+      }
+
+      var inverted = false;
+
+      this.doStuff = function () {
+        if (inverted) {
+          this.obj = {
+            getFirst: getFirst,
+            getLast: getLast,
+          };
+          inverted = false;
+        } else {
+          this.obj = {
+            getLast: getFirst,
+            getFirst: getLast,
+          };
+          inverted = true;
+        }
+      }
+
+      this.obj = {
+        getFirst: getFirst,
+        getLast: getLast
+      };
+
+    }]);
+    </script>
+  </body>
+</html>

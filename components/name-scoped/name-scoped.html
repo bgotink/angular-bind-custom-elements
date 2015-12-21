@@ -1,0 +1,33 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id='name-scoped'>
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    </style>
+    <p>
+      [[_getFirst(name)]] [[_getLast(name)]]
+    </p>
+  </template>
+  <script>
+    Polymer({
+      is: 'name-scoped',
+      properties: {
+        name: {
+          type: Object,
+          value: {},
+        },
+      },
+
+      _getFirst(name) {
+        return name.getFirst();
+      },
+
+      _getLast(name) {
+        return name.getLast();
+      },
+    });
+  </script>
+</dom-module>

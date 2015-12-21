@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html ng-app='app'>
+  <head>
+    <title>Bi-Directional Binding Demo</title>
+    <link href="../bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel='import' href='../components/name-angular/name-angular.html' />
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <h1>Demo</h1>
+        <p>
+          <label for="f_name">First Name:</label>
+          <input type="text" ng-model="f_name">
+        </p>
+        <p>
+          <label for="l_name">Last Name:</label>
+          <input type="text" ng-model="l_name">
+        </p>
+      </div>
+      <name-angular bind-polymer pl-first="f_name" pl-last="l_name">
+        <div style="border: 1px solid red;">{{ f_name }} {{ l_name }}</div>
+      </name-angular>
+    </div>
+    <script src="../bower_components/angular/angular.min.js"></script>
+    <script src="../bindPolymer.js"></script>
+    <script>
+    angular
+    .module('app', ['bindPolymer']);
+    </script>
+  </body>
+</html>
