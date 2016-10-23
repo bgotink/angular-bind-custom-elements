@@ -23,7 +23,7 @@ Files in this repository fall under the MIT license, unless the file itself stat
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Bram Gotink <github.com/bgotink>
+Copyright (c) 2015-2016 Bram Gotink <github.com/bgotink>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
