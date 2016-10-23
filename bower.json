@@ -1,19 +1,18 @@
 {
-  "name": "angular-polymer-tests",
+  "name": "angular-custom-elements",
   "authors": [
     "Bram Gotink <bram@gotink.me>"
   ],
-  "description": "Testing the link between angular 1.x and polymer",
+  "description": "Angular 1 directive to create two way binding between Angular and custom elements",
   "keywords": [
     "angular",
-    "polymer"
+    "custom elements"
   ],
   "license": "MIT",
   "private": true,
   "devDependencies": {
-    "angular": "~1.4.8",
-    "polymer": "~1.2.3",
-    "webcomponentsjs": "~0.7.20",
+    "angular": "~1.5.8",
+    "polymer": "~1.7",
     "bootstrap": "~3.3.6"
   }
 }
