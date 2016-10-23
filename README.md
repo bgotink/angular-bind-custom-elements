@@ -9,12 +9,12 @@ This script is based on the idea of [@jshcrowthe](https://github.com/jshcrowthe/
 The bind-polymer directive binds variables from Angular to Polymer
 It supports not only "simple" variables like String or Number, but also Objects, even if those objects have functions that access variables in another JS scope.
 
-## Tests
+## Pages
 
-- `test/object.html`: tests variable binding to an object
-- `test/functions.html`: tests variable binding to function calls
-- `test/scoped.html`: tests variable binding to object with getters
-- `test/dom-if.html`: tests behavior of angular code inside of a `dom-if` template inside a Polymer element's light DOM (only works with ShadowDOM, use `?dom=shadow`)
+- `pages/object.html`: tests variable binding to an object
+- `pages/functions.html`: tests variable binding to function calls
+- `pages/scoped.html`: tests variable binding to object with getters
+- `pages/dom-if.html`: tests behavior of angular code inside of a `dom-if` template inside a Polymer element's light DOM (only works with ShadowDOM, use `?dom=shadow`)
 - &hellip; more to come?
 
 ## License
