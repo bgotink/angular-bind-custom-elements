@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('interpolated, ng-if', function() {
   it('should receive binding as ng-if is toggled', function() {
     browser.get('http://127.0.0.1:8000/test/two-way/ng-if-spec.html');

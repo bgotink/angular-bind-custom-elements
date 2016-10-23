@@ -19,6 +19,8 @@ It supports not only "simple" variables like String or Number, but also Objects,
 
 ## License
 
+Files in this repository fall under the MIT license, unless the file itself states otherwise.
+
 The MIT License (MIT)
 
 Copyright (c) 2015 Bram Gotink <github.com/bgotink>

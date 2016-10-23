@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('interpolated, objects', function() {
   it('should have the same sub-property', function() {
     browser.get('http://127.0.0.1:8000/test/two-way/object-spec.html');

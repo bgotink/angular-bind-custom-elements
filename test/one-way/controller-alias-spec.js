@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('one-way, use given controller alias', function() {
 
   it('should have the same sub-property, with no ctrl alias', function() {

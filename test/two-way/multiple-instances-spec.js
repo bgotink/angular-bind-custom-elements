@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('interpolated, multiple instances', function() {
   it('should only update the instance that changed', function() {
     browser.get('http://127.0.0.1:8000/test/two-way/multiple-instances-spec.html');

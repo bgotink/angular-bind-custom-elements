@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('interpolated, ng-repeat', function() {
   it('should update the value in the local and parent scopes', function() {
     browser.get('http://127.0.0.1:8000/test/two-way/ng-repeat-spec.html');

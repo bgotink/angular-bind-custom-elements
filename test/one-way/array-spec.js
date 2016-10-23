@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * Modified because the path to the HTML file changed.
+ */
+
 describe('one-way, arrays', function() {
   it('should have the same array', function() {
     browser.get('http://127.0.0.1:8000/test/one-way/array-spec.html');
