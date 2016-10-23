@@ -13,6 +13,12 @@ angular
   '$interpolate',
   function($parse, $interpolate) {
     function setCeValue(element, regularKey, normalizedKey, value) {
+      if (angular.isArray(value)) {
+        value = value.slice(0);
+      } else if (angular.isObject(value)) {
+        value = Object.assign({}, value);
+      }
+
       if (normalizedKey in element) {
         element[normalizedKey] = value;
       } else {
@@ -76,23 +82,42 @@ angular
         }
 
         return function link($scope, $element, $attrs, ctrl, $transclude) {
+          const registeredAngularUpdates = Object.create(null);
           function changeListener(event) {
             const name = event.type.substring(0, event.type.lastIndexOf('-changed'));
             const normalizedName = $attrs.$normalize(name);
             console.log(`listen ${normalizedName}`);
 
             if (!(normalizedName in angularAttributeMap)) {
-              // shouldn't happen, nothing to do here
+              // This shouldn't happen, nothing to do here
+              return;
+            }
+
+            let newValue = event.detail.value;
+            if (event.detail.path) {
+              newValue = getCeValue($element[0], name, normalizedName);
+            }
+
+            if (registeredAngularUpdates[normalizedName]) {
+              // We already got an event and an update is still pending
+              registeredAngularUpdates[normalizedName] = { newValue };
               return;
             }
 
             const getAngularValue = angularAttributeMap[normalizedName];
             const setAngularValue = getAngularValue.assign;
 
-            const newValue = event.detail.value;
-            const oldValue = getAngularValue($scope);
+            registeredAngularUpdates[normalizedName] = { newValue };
 
-            if (!angular.equals(newValue, oldValue) && angular.isFunction(setAngularValue)) {
+            $scope.$evalAsync(() => {
+              const oldValue = getAngularValue($scope);
+              const { newValue } = registeredAngularUpdates[normalizedName];
+              registeredAngularUpdates[normalizedName] = null;
+
+              if (angular.equals(oldValue, newValue)) {
+                return;
+              }
+
               if (angular.isArray(oldValue)) {
                 oldValue.length = 0;
                 oldValue.push(...newValue);
@@ -102,25 +127,22 @@ angular
               } else {
                 setAngularValue($scope, newValue);
               }
-            }
+            });
           }
 
+          // Link _to_ custom element
           for (let normalizedName in angularAttributeMap) {
             const getAngularValue = angularAttributeMap[normalizedName];
             const setAngularValue = getAngularValue.assign || angular.noop;
 
             const regularName = denormalize(normalizedName);
 
-            // Link _to_ custom element
-
-            let initial = true;
-            $scope.$watch(getAngularValue, newValue => {
+            $scope.$watch(getAngularValue, (newValue, oldValue) => {
               console.log(`watch ${normalizedName}`);
+              const initial = newValue === oldValue;
               const ceValue = getCeValue($element[0], regularName, normalizedName);
 
               if (initial) {
-                initial = false;
-
                 if (angular.isUndefined(newValue) && !angular.isUndefined(ceValue)) {
                   // known in custom element, not yet in angular
                   // so we send the custom element value to angular
@@ -129,14 +151,21 @@ angular
                 }
               }
 
-              if (newValue !== ceValue) {
+              if (!angular.equals(newValue, ceValue)) {
                 setCeValue($element[0], regularName, normalizedName, newValue);
               }
-            });
+            }, true);
+          }
 
-            // Link _from_ custom element
+          const $newElement = $transclude($scope);
+          $element.replaceWith($newElement);
+          $element = $newElement;
 
-            $element.on(`${regularName}-changed`, changeListener);
+          // Link _from_ custom element
+          for (let normalizedName in angularAttributeMap) {
+            if (angular.isFunction(angularAttributeMap[normalizedName].assign)) {
+              $element.on(`${denormalize(normalizedName)}-changed`, changeListener);
+            }
           }
 
           $scope.$on('$destroy', () => {
@@ -144,10 +173,6 @@ angular
               $element.off(`${denormalize(normalizedName)}-changed`, changeListener);
             }
           });
-
-          $newElement = $transclude($scope);
-          $element.replaceWith($newElement);
-          $element = $newElement;
         };
       }
     };

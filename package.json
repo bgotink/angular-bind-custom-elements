@@ -1,0 +1,27 @@
+{
+  "name": "angular-custom-elements",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Angular 1 directive to create two way binding between Angular and custom elements",
+  "main": "dist/bindCustomElements.js",
+  "scripts": {
+    "build": "gulp",
+    "test": "gulp test"
+  },
+  "repository": "bgotink/angular-custom-elements",
+  "author": "Bram Gotink <bram@gotink.me>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.16.0",
+    "del": "^2.2.1",
+    "eslint": "^3.1.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.0",
+    "gulp-connect": "^5.0.0",
+    "gulp-protractor": "^3.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.0",
+    "gulp-umd": "^0.2.0"
+  }
+}
