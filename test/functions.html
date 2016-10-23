@@ -23,14 +23,14 @@
         <ng-name-basic first="getFirst()" last="getLast()"></name-basic>
       </div>
       <div class="row polymer">
-        <name-basic bind-polymer pl-first="getFirst()" pl-last="getLast()"></name-basic>
+        <name-basic bind-ce ce-first="getFirst()" ce-last="getLast()"></name-basic>
       </div>
     </div>
     <script src="../bower_components/angular/angular.min.js"></script>
-    <script src="../bindPolymer.js"></script>
+    <script src="../bindCustomElement.js"></script>
     <script>
     angular
-    .module('app', ['bindPolymer'])
+    .module('app', ['bgotink.customElements'])
     .directive('ngNameBasic', [function () {
       return {
         restrict: 'E',

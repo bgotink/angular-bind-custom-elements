@@ -19,15 +19,15 @@
           <input type="text" ng-model="l_name">
         </p>
       </div>
-      <name-angular bind-polymer pl-first="f_name" pl-last="l_name">
+      <name-angular bind-ce ce-first="f_name" ce-last="l_name">
         <div style="border: 1px solid red;">{{ f_name }} {{ l_name }}</div>
       </name-angular>
     </div>
     <script src="../bower_components/angular/angular.min.js"></script>
-    <script src="../bindPolymer.js"></script>
+    <script src="../bindCustomElement.js"></script>
     <script>
     angular
-    .module('app', ['bindPolymer']);
+    .module('app', ['bgotink.customElements']);
     </script>
   </body>
 </html>

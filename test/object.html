@@ -19,15 +19,15 @@
           <ng-name-object name="my.obj"></ng-name-object>
         </div>
         <div class="col-xs-4 polymer-fixed">
-          <name-object bind-polymer pl-name="my.obj"></name-object>
+          <name-object bind-ce ce-name="my.obj"></name-object>
         </div>
       </div>
     </div>
     <script src="../bower_components/angular/angular.min.js"></script>
-    <script src="../bindPolymer.js"></script>
+    <script src="../bindCustomElement.js"></script>
     <script>
     angular
-    .module('app', ['bindPolymer'])
+    .module('app', ['bgotink.customElements'])
     .directive('ngNameObject', [function () {
       return {
         restrict: 'E',
