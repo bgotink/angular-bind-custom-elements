@@ -125,7 +125,7 @@ angular
 
           const setter = getter.assign;
 
-          if (listen && !angular.isFunction(setter)) {
+          if (twoWayBind && !angular.isFunction(setter)) {
             throw new TypeError(`Cannot write to ${attribute}`)
           }
 
