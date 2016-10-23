@@ -142,8 +142,7 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
 
         angularAttributeMap[attributeName] = {
           getter: getter, setter: setter,
-          bind: bind, listen: listen, twoWayBind: twoWayBind,
-          attribute: attribute
+          bind: bind, listen: listen, twoWayBind: twoWayBind
         };
       }
 
@@ -203,10 +202,11 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
         function regularListener(event) {
           var normalizedName = $attrs.$normalize(event.type);
           console.log('listen ' + normalizedName);
-          console.log(angularAttributeMap[normalizedName].attribute, { $event: event });
 
           // Make $event available in the callback
-          $scope.$evalAsync(angularAttributeMap[normalizedName].attribute, { $event: event });
+          $scope.$evalAsync(function () {
+            return angularAttributeMap[normalizedName].getter($scope, { $event: event });
+          });
         }
 
         // Link _to_ custom element
