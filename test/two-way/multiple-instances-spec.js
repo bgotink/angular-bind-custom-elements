@@ -17,7 +17,7 @@
 
 describe('interpolated, multiple instances', function() {
   it('should only update the instance that changed', function() {
-    browser.get('http://127.0.0.1:8000/test/multiple-instances-spec.html');
+    browser.get('http://127.0.0.1:8000/test/two-way/multiple-instances-spec.html');
 
     var ngString2 = element.all(by.css('.ng-string')).get(1);
     var ngString3 = element.all(by.css('.ng-string')).last();

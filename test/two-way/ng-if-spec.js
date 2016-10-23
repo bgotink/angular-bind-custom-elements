@@ -15,26 +15,21 @@
  * limitations under the License.
  */
 
-describe('interpolated, objects', function() {
-  it('should have the same sub-property', function() {
-    browser.get('http://127.0.0.1:8000/test/object-spec.html');
+describe('interpolated, ng-if', function() {
+  it('should receive binding as ng-if is toggled', function() {
+    browser.get('http://127.0.0.1:8000/test/two-way/ng-if-spec.html');
 
-    var ngObject;
-    var wcObject;
-    var ngButton = element(by.id('ng-button'));
+    var ngString = element(by.id('ng-string'));
+    var wcString = element(by.id('wc-string'));
+    var ngCheckbox = element(by.id('ng-checkbox'));
     var wcButton = element(by.id('wc-button'));
 
-    ngObject = element(by.id('ng-object'));
-    wcObject = element(by.id('wc-object'));
-    expect(ngObject.getText()).toEqual('Lisa');
-    expect(wcObject.getText()).toEqual('Lisa');
-
-    ngButton.click();
-    expect(ngObject.getText()).toEqual('Joe');
-    expect(wcObject.getText()).toEqual('Joe');
+    ngCheckbox.click();
+    expect(ngString.getText()).toEqual('Hello, from Angular!');
+    expect(wcString.getText()).toEqual('Hello, from Angular!');
 
     wcButton.click();
-    expect(ngObject.getText()).toEqual('Alex');
-    expect(wcObject.getText()).toEqual('Alex');
+    expect(ngString.getText()).toEqual('String changed in Polymer');
+    expect(wcString.getText()).toEqual('String changed in Polymer');
   });
 });

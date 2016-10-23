@@ -17,7 +17,7 @@
 
 describe('interpolated, strings', function() {
   it('should have the same string', function() {
-    browser.get('http://127.0.0.1:8000/test/string-spec.html');
+    browser.get('http://127.0.0.1:8000/test/two-way/string-spec.html');
 
     var ngString;
     var wcString;
