@@ -60,10 +60,6 @@ angular
       return attributeName.replace(/[A-Z]/, letter => `-${letter.toLowerCase()}`);
     }
 
-    function startsWith(haystack, needle) {
-      return haystack.slice(0, needle.length) === needle;
-    }
-
     function stripFromAttribute(attributeName, { length: charsToStrip }) {
       return attributeName.charAt(charsToStrip).toLocaleLowerCase() + attributeName.slice(charsToStrip + 1);
     }
@@ -106,15 +102,15 @@ angular
           let listen = false;
           let twoWayBind = false;
 
-          if (startsWith(attributeName, 'bindOn')) {
+          if (attributeName.match(/^bindOn[A-Z]/)) {
             bind = true;
             listen = true;
             twoWayBind = true;
             attributeName = stripFromAttribute(attributeName, 'bindOn');
-          } else if (startsWith(attributeName, 'bind')) {
+          } else if (attributeName.match(/^bind[A-Z]/)) {
             bind = true;
             attributeName = stripFromAttribute(attributeName, 'bind');
-          } else if (startsWith(attributeName, 'on')) {
+          } else if (attributeName.match(/^on[A-Z]/)) {
             listen = true;
             attributeName = stripFromAttribute(attributeName, 'on');
           }
