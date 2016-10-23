@@ -188,8 +188,7 @@ angular
           }
 
           function regularListener(event) {
-            const name = customElementSettings.eventToAttribute(event.type);
-            const normalizedName = $attrs.$normalize(name);
+            const normalizedName = $attrs.$normalize(event.type);
             console.log(`listen ${normalizedName}`);
 
             // Make $event available in the callback
