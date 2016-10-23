@@ -26,7 +26,7 @@ limitations under the License.
   <div ng-controller="MainCtrl as main">
     Angular string is: <span id="ng-string">{{main.greeting}}</span>
     <button id="ng-button" ng-click="main.updateStr()">Update string in Angular</button>
-    <my-input ce-message="main.greeting" bind-ce></my-input>
+    <my-input ce-bind-on-message="main.greeting" bind-ce></my-input>
   </div>
 
   <script>

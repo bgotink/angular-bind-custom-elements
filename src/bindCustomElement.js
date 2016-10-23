@@ -8,10 +8,32 @@
 
 angular
 .module('bgotink.customElements', [])
+.provider('customElementSettings', function () {
+  const options = {
+    attributeToEvent(attributeName) {
+      return `${attributeName}-changed`;
+    },
+
+    eventToAttribute(eventName) {
+      return eventName.substring(0, event.type.lastIndexOf('-changed'));
+    },
+  };
+
+  this.setAttributeToEventMapper = (fn) => {
+    options.attributeToEvent = fn;
+  };
+
+  this.setEventToAttributeMapper = (fn) => {
+    options.eventToAttribute = fn;
+  }
+
+  this.$get = () => Object.assign({}, options);
+})
 .directive('bindCe', [
   '$parse',
   '$interpolate',
-  function($parse, $interpolate) {
+  'customElementSettings',
+  function($parse, $interpolate, customElementSettings) {
     function setCeValue(element, regularKey, normalizedKey, value) {
       if (angular.isArray(value)) {
         value = value.slice(0);
@@ -38,6 +60,16 @@ angular
       return attributeName.replace(/[A-Z]/, letter => `-${letter.toLowerCase()}`);
     }
 
+    function startsWith(haystack, needle) {
+      return haystack.slice(0, needle.length) === needle;
+    }
+
+    function stripFromAttribute(attributeName, { length: charsToStrip }) {
+      return attributeName.charAt(charsToStrip).toLocaleLowerCase() + attributeName.slice(charsToStrip + 1);
+    }
+
+    const hasProperty = Object.prototype.hasOwnProperty;
+
     return {
       // attribute only, NOT element (obviously, as this directive is to be used on a polymer element)
       restrict: 'A',
@@ -56,7 +88,7 @@ angular
         const angularAttributeMap = {};
 
         for (let attributeName in $attrs) {
-          if (!$attrs.hasOwnProperty(attributeName)) {
+          if (!hasProperty.call($attrs, attributeName)) {
             continue;
           }
 
@@ -66,29 +98,58 @@ angular
 
           let attribute = $attrs[attributeName];
 
-          // Remove the attribute from the template element
-          $element.attr(denormalize(attributeName), null);
-
           // Remove leading `ce-` from attribute name
-          attributeName = attributeName.charAt(2).toLowerCase() + attributeName.slice(3);
+          attributeName = stripFromAttribute(attributeName, 'ce');
           var isExpression = attribute.match(/\{\{\s*[\.\w]+\s*\}\}/);
 
-          // $interpolate expressions, $parse the rest
-          if (isExpression) {
-            angularAttributeMap[attributeName] = $interpolate(attribute);
-          } else {
-            angularAttributeMap[attributeName] = $parse(attribute);
+          let bind = false;
+          let listen = false;
+          let twoWayBind = false;
+
+          if (startsWith(attributeName, 'bindOn')) {
+            bind = true;
+            listen = true;
+            twoWayBind = true;
+            attributeName = stripFromAttribute(attributeName, 'bindOn');
+          } else if (startsWith(attributeName, 'bind')) {
+            bind = true;
+            attributeName = stripFromAttribute(attributeName, 'bind');
+          } else if (startsWith(attributeName, 'on')) {
+            listen = true;
+            attributeName = stripFromAttribute(attributeName, 'on');
           }
+
+          // $interpolate expressions, $parse the rest
+          let getter;
+          if (isExpression) {
+            getter = $interpolate(attribute);
+          } else {
+            getter = $parse(attribute);
+          }
+
+          const setter = getter.assign;
+
+          if (listen && !angular.isFunction(setter)) {
+            throw new TypeError(`Cannot write to ${attribute}`)
+          }
+
+          angularAttributeMap[attributeName] = {
+            getter, setter,
+            bind, listen, twoWayBind,
+          };
         }
 
-        return function link($scope, $element, $attrs, ctrl, $transclude) {
-          const registeredAngularUpdates = Object.create(null);
-          function changeListener(event) {
-            const name = event.type.substring(0, event.type.lastIndexOf('-changed'));
-            const normalizedName = $attrs.$normalize(name);
-            console.log(`listen ${normalizedName}`);
+        console.log(angularAttributeMap);
 
-            if (!(normalizedName in angularAttributeMap)) {
+        return function link($scope, $element, $attrs, ctrl, $transclude) {
+          const registeredAngularUpdates = {};
+
+          function twoWayBindListener(event) {
+            const name = customElementSettings.eventToAttribute(event.type);
+            const normalizedName = $attrs.$normalize(name);
+            console.log(`two way bind listen ${normalizedName}`);
+
+            if (!hasProperty.call(angularAttributeMap, normalizedName)) {
               // This shouldn't happen, nothing to do here
               return;
             }
@@ -98,14 +159,14 @@ angular
               newValue = getCeValue($element[0], name, normalizedName);
             }
 
-            if (registeredAngularUpdates[normalizedName]) {
+            if (hasProperty.call(registeredAngularUpdates, normalizedName) && registeredAngularUpdates[normalizedName]) {
               // We already got an event and an update is still pending
               registeredAngularUpdates[normalizedName] = { newValue };
               return;
             }
 
-            const getAngularValue = angularAttributeMap[normalizedName];
-            const setAngularValue = getAngularValue.assign;
+            const getAngularValue = angularAttributeMap[normalizedName].getter;
+            const setAngularValue = angularAttributeMap[normalizedName].setter;
 
             registeredAngularUpdates[normalizedName] = { newValue };
 
@@ -130,10 +191,23 @@ angular
             });
           }
 
+          function regularListener(event) {
+            const name = customElementSettings.eventToAttribute(event.type);
+            const normalizedName = $attrs.$normalize(name);
+            console.log(`listen ${normalizedName}`);
+
+            // Make $event available in the callback
+            $scope.$evalAsync(angularAttributeMap[normalizedName].getter, { $event: event });
+          }
+
           // Link _to_ custom element
           for (let normalizedName in angularAttributeMap) {
-            const getAngularValue = angularAttributeMap[normalizedName];
-            const setAngularValue = getAngularValue.assign || angular.noop;
+            if (!angularAttributeMap[normalizedName].bind) {
+              continue;
+            }
+
+            const getAngularValue = angularAttributeMap[normalizedName].getter;
+            const setAngularValue = angularAttributeMap[normalizedName].setter || angular.noop;
 
             const regularName = denormalize(normalizedName);
 
@@ -161,18 +235,36 @@ angular
           $element.replaceWith($newElement);
           $element = $newElement;
 
+          const registeredListeners = {};
+
           // Link _from_ custom element
           for (let normalizedName in angularAttributeMap) {
-            if (angular.isFunction(angularAttributeMap[normalizedName].assign)) {
-              $element.on(`${denormalize(normalizedName)}-changed`, changeListener);
+            if (!angularAttributeMap[normalizedName].listen) {
+              continue;
             }
+
+            let eventName, listener;
+
+            if (angularAttributeMap[normalizedName].twoWayBind) {
+              eventName = customElementSettings.attributeToEvent(denormalize(normalizedName));
+              listener = twoWayBindListener;
+            } else {
+              eventName = denormalize(normalizedName);
+              listener = regularListener;
+            }
+
+            registeredListeners[eventName] = listener;
+            $element.on(eventName, listener);
           }
 
           $scope.$on('$destroy', () => {
-            for (let normalizedName in angularAttributeMap) {
-              $element.off(`${denormalize(normalizedName)}-changed`, changeListener);
+            for (let eventName in registeredListeners) {
+              $element.off(eventName, registeredListeners[eventName]);
+              registeredListeners[eventName] = null;
             }
           });
+
+          console.log(registeredListeners);
         };
       }
     };

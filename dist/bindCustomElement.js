@@ -19,7 +19,28 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
  * @see inspired by the work of Chris Strom et al, see <https://github.com/eee-c/angular-bind-polymer>
  */
 
-angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$interpolate', function ($parse, $interpolate) {
+angular.module('bgotink.customElements', []).provider('customElementSettings', function () {
+  var options = {
+    attributeToEvent: function attributeToEvent(attributeName) {
+      return attributeName + '-changed';
+    },
+    eventToAttribute: function eventToAttribute(eventName) {
+      return eventName.substring(0, event.type.lastIndexOf('-changed'));
+    }
+  };
+
+  this.setAttributeToEventMapper = function (fn) {
+    options.attributeToEvent = fn;
+  };
+
+  this.setEventToAttributeMapper = function (fn) {
+    options.eventToAttribute = fn;
+  };
+
+  this.$get = function () {
+    return Object.assign({}, options);
+  };
+}).directive('bindCe', ['$parse', '$interpolate', 'customElementSettings', function ($parse, $interpolate, customElementSettings) {
   function setCeValue(element, regularKey, normalizedKey, value) {
     if (angular.isArray(value)) {
       value = value.slice(0);
@@ -48,6 +69,18 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
     });
   }
 
+  function startsWith(haystack, needle) {
+    return haystack.slice(0, needle.length) === needle;
+  }
+
+  function stripFromAttribute(attributeName, _ref) {
+    var charsToStrip = _ref.length;
+
+    return attributeName.charAt(charsToStrip).toLocaleLowerCase() + attributeName.slice(charsToStrip + 1);
+  }
+
+  var hasProperty = Object.prototype.hasOwnProperty;
+
   return {
     // attribute only, NOT element (obviously, as this directive is to be used on a polymer element)
     restrict: 'A',
@@ -66,7 +99,7 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
       var angularAttributeMap = {};
 
       for (var attributeName in $attrs) {
-        if (!$attrs.hasOwnProperty(attributeName)) {
+        if (!hasProperty.call($attrs, attributeName)) {
           continue;
         }
 
@@ -76,29 +109,58 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
 
         var attribute = $attrs[attributeName];
 
-        // Remove the attribute from the template element
-        $element.attr(denormalize(attributeName), null);
-
         // Remove leading `ce-` from attribute name
-        attributeName = attributeName.charAt(2).toLowerCase() + attributeName.slice(3);
+        attributeName = stripFromAttribute(attributeName, 'ce');
         var isExpression = attribute.match(/\{\{\s*[\.\w]+\s*\}\}/);
 
-        // $interpolate expressions, $parse the rest
-        if (isExpression) {
-          angularAttributeMap[attributeName] = $interpolate(attribute);
-        } else {
-          angularAttributeMap[attributeName] = $parse(attribute);
+        var bind = false;
+        var listen = false;
+        var twoWayBind = false;
+
+        if (startsWith(attributeName, 'bindOn')) {
+          bind = true;
+          listen = true;
+          twoWayBind = true;
+          attributeName = stripFromAttribute(attributeName, 'bindOn');
+        } else if (startsWith(attributeName, 'bind')) {
+          bind = true;
+          attributeName = stripFromAttribute(attributeName, 'bind');
+        } else if (startsWith(attributeName, 'on')) {
+          listen = true;
+          attributeName = stripFromAttribute(attributeName, 'on');
         }
+
+        // $interpolate expressions, $parse the rest
+        var getter = void 0;
+        if (isExpression) {
+          getter = $interpolate(attribute);
+        } else {
+          getter = $parse(attribute);
+        }
+
+        var setter = getter.assign;
+
+        if (listen && !angular.isFunction(setter)) {
+          throw new TypeError('Cannot write to ' + attribute);
+        }
+
+        angularAttributeMap[attributeName] = {
+          getter: getter, setter: setter,
+          bind: bind, listen: listen, twoWayBind: twoWayBind
+        };
       }
 
-      return function link($scope, $element, $attrs, ctrl, $transclude) {
-        var registeredAngularUpdates = Object.create(null);
-        function changeListener(event) {
-          var name = event.type.substring(0, event.type.lastIndexOf('-changed'));
-          var normalizedName = $attrs.$normalize(name);
-          console.log('listen ' + normalizedName);
+      console.log(angularAttributeMap);
 
-          if (!(normalizedName in angularAttributeMap)) {
+      return function link($scope, $element, $attrs, ctrl, $transclude) {
+        var registeredAngularUpdates = {};
+
+        function twoWayBindListener(event) {
+          var name = customElementSettings.eventToAttribute(event.type);
+          var normalizedName = $attrs.$normalize(name);
+          console.log('two way bind listen ' + normalizedName);
+
+          if (!hasProperty.call(angularAttributeMap, normalizedName)) {
             // This shouldn't happen, nothing to do here
             return;
           }
@@ -108,14 +170,14 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
             newValue = getCeValue($element[0], name, normalizedName);
           }
 
-          if (registeredAngularUpdates[normalizedName]) {
+          if (hasProperty.call(registeredAngularUpdates, normalizedName) && registeredAngularUpdates[normalizedName]) {
             // We already got an event and an update is still pending
             registeredAngularUpdates[normalizedName] = { newValue: newValue };
             return;
           }
 
-          var getAngularValue = angularAttributeMap[normalizedName];
-          var setAngularValue = getAngularValue.assign;
+          var getAngularValue = angularAttributeMap[normalizedName].getter;
+          var setAngularValue = angularAttributeMap[normalizedName].setter;
 
           registeredAngularUpdates[normalizedName] = { newValue: newValue };
 
@@ -141,11 +203,24 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
           });
         }
 
+        function regularListener(event) {
+          var name = customElementSettings.eventToAttribute(event.type);
+          var normalizedName = $attrs.$normalize(name);
+          console.log('listen ' + normalizedName);
+
+          // Make $event available in the callback
+          $scope.$evalAsync(angularAttributeMap[normalizedName].getter, { $event: event });
+        }
+
         // Link _to_ custom element
 
         var _loop = function _loop(normalizedName) {
-          var getAngularValue = angularAttributeMap[normalizedName];
-          var setAngularValue = getAngularValue.assign || angular.noop;
+          if (!angularAttributeMap[normalizedName].bind) {
+            return 'continue';
+          }
+
+          var getAngularValue = angularAttributeMap[normalizedName].getter;
+          var setAngularValue = angularAttributeMap[normalizedName].setter || angular.noop;
 
           var regularName = denormalize(normalizedName);
 
@@ -170,25 +245,46 @@ angular.module('bgotink.customElements', []).directive('bindCe', ['$parse', '$in
         };
 
         for (var normalizedName in angularAttributeMap) {
-          _loop(normalizedName);
+          var _ret = _loop(normalizedName);
+
+          if (_ret === 'continue') continue;
         }
 
         var $newElement = $transclude($scope);
         $element.replaceWith($newElement);
         $element = $newElement;
 
+        var registeredListeners = {};
+
         // Link _from_ custom element
         for (var _normalizedName in angularAttributeMap) {
-          if (angular.isFunction(angularAttributeMap[_normalizedName].assign)) {
-            $element.on(denormalize(_normalizedName) + '-changed', changeListener);
+          if (!angularAttributeMap[_normalizedName].listen) {
+            continue;
           }
+
+          var eventName = void 0,
+              listener = void 0;
+
+          if (angularAttributeMap[_normalizedName].twoWayBind) {
+            eventName = customElementSettings.attributeToEvent(denormalize(_normalizedName));
+            listener = twoWayBindListener;
+          } else {
+            eventName = denormalize(_normalizedName);
+            listener = regularListener;
+          }
+
+          registeredListeners[eventName] = listener;
+          $element.on(eventName, listener);
         }
 
         $scope.$on('$destroy', function () {
-          for (var _normalizedName2 in angularAttributeMap) {
-            $element.off(denormalize(_normalizedName2) + '-changed', changeListener);
+          for (var _eventName in registeredListeners) {
+            $element.off(_eventName, registeredListeners[_eventName]);
+            registeredListeners[_eventName] = null;
           }
         });
+
+        console.log(registeredListeners);
       };
     }
   };

@@ -26,7 +26,7 @@ limitations under the License.
   <div ng-controller="MainCtrl as main">
     <p>Angular object is: <span id="ng-object">{{main.person.name}}</span></p>
     <button id="ng-button" ng-click="main.updateName()">Update object in Angular</button>
-    <my-person ce-person="main.person" bind-ce></my-person>
+    <my-person ce-bind-on-person="main.person" bind-ce></my-person>
   </div>
 
   <script>
