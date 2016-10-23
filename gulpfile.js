@@ -36,7 +36,7 @@ gulp.task('test', ['webdriver_update'], function() {
 
 gulp.task('clean', () => del(['dist']));
 
-gulp.task('build', ['clean', ], () =>
+gulp.task('build', ['clean', 'test'], () =>
   gulp.src([
       'src/bindCustomElement.js'
     ])
