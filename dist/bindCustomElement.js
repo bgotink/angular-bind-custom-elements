@@ -69,10 +69,6 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
     });
   }
 
-  function startsWith(haystack, needle) {
-    return haystack.slice(0, needle.length) === needle;
-  }
-
   function stripFromAttribute(attributeName, _ref) {
     var charsToStrip = _ref.length;
 
@@ -117,15 +113,15 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
         var listen = false;
         var twoWayBind = false;
 
-        if (startsWith(attributeName, 'bindOn')) {
+        if (attributeName.match(/^bindOn[A-Z]/)) {
           bind = true;
           listen = true;
           twoWayBind = true;
           attributeName = stripFromAttribute(attributeName, 'bindOn');
-        } else if (startsWith(attributeName, 'bind')) {
+        } else if (attributeName.match(/^bind[A-Z]/)) {
           bind = true;
           attributeName = stripFromAttribute(attributeName, 'bind');
-        } else if (startsWith(attributeName, 'on')) {
+        } else if (attributeName.match(/^on[A-Z]/)) {
           listen = true;
           attributeName = stripFromAttribute(attributeName, 'on');
         }
@@ -140,13 +136,14 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
 
         var setter = getter.assign;
 
-        if (listen && !angular.isFunction(setter)) {
+        if (twoWayBind && !angular.isFunction(setter)) {
           throw new TypeError('Cannot write to ' + attribute);
         }
 
         angularAttributeMap[attributeName] = {
           getter: getter, setter: setter,
-          bind: bind, listen: listen, twoWayBind: twoWayBind
+          bind: bind, listen: listen, twoWayBind: twoWayBind,
+          attribute: attribute
         };
       }
 
@@ -204,12 +201,12 @@ angular.module('bgotink.customElements', []).provider('customElementSettings', f
         }
 
         function regularListener(event) {
-          var name = customElementSettings.eventToAttribute(event.type);
-          var normalizedName = $attrs.$normalize(name);
+          var normalizedName = $attrs.$normalize(event.type);
           console.log('listen ' + normalizedName);
+          console.log(angularAttributeMap[normalizedName].attribute, { $event: event });
 
           // Make $event available in the callback
-          $scope.$evalAsync(angularAttributeMap[normalizedName].getter, { $event: event });
+          $scope.$evalAsync(angularAttributeMap[normalizedName].attribute, { $event: event });
         }
 
         // Link _to_ custom element

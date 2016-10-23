@@ -192,7 +192,7 @@ angular
             console.log(`listen ${normalizedName}`);
 
             // Make $event available in the callback
-            $scope.$evalAsync(angularAttributeMap[normalizedName].getter, { $event: event });
+            $scope.$evalAsync(() => angularAttributeMap[normalizedName].getter($scope, { $event: event }));
           }
 
           // Link _to_ custom element
